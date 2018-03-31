@@ -1,0 +1,69 @@
+-- V1.0a AR
+-- 30.12.2016 16:35:37 AR V1.0b
+-- 21.05.2017 11:02:52 AR V1.0c
+-- 19.08.2017 07:05:16 AR V1.0d
+
+generic = {
+  parameter = {
+    inputs = 3
+  },
+
+  refreshPins = function(self)
+    block.setInputsPinCount(self.parameter.inputs + 1)
+    block.modifyFlags('SupressStartFunctionCall', true)
+    block.modifyFlags('SupressStopFunctionCall', true)
+    for i = 1, self.parameter.inputs do
+      block.setInputPinName(i, 'a' .. i)
+      block.setInputPinTypeRestrains(i, 'any')
+    end
+    block.setInputPinName(self.parameter.inputs + 1, 'sel#')
+  end,
+
+  init = function(self)
+    block.setOutputsPinCount(1)
+    block.setOutputPinTypeRestrains(1, 'any')
+    generic.refreshPins(self)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'Select', 'Select scalar signals (a1..an)')
+    gui.add('Edit', 'EditNumberOfInputs', 'Number of inputs', {NumberMode = true})
+    gui.set('EditNumberOfInputs', 'Integer', self.parameter.inputs)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.inputs = gui.get('EditNumberOfInputs', 'Integer')
+    generic.refreshPins(self)
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(
+      0x0,
+      '',
+      'local _y = h - h / #self.inputs; draw.line(px(0), _y, px(66), _y, px(66), py(100))'
+      )
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        return {
+
+          step = function(A, sel)
+            return table.pack(A)[sel]
+          end
+
+        }
+      ]==]
+    local replaces = {
+      ['A'] = table.concat(block.getInputsPinNames(1, -1), ', ')
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+

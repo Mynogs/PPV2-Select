@@ -1,0 +1,79 @@
+-- V1.0a AR
+-- 30.12.2016 16:35:29 AR V1.0b
+-- 21.05.2017 11:00:13 AR V1.0c
+-- 22.06.2017 09:11:03 AR V1.0d
+-- 19.08.2017 07:05:05 AR V1.0e
+
+generic = {
+  parameter = {
+    inputs = 3
+  },
+
+  refreshPins = function(self)
+    block.setInputsPinCount(self.parameter.inputs * 2 - 1)
+    for i = 1, self.parameter.inputs do
+      block.setInputPinName(i, 'a' .. i)
+      block.setInputPinTypeRestrains(i, 'any')
+    end
+    for i = 2, self.parameter.inputs do
+      block.setInputPinName(self.parameter.inputs + i - 1, 'sel' .. i)
+      block.setInputPinTypeRestrains(self.parameter.inputs + i - 1, 'boolean')
+    end
+  end,
+
+  init = function(self)
+    block.setOutputsPinCount(1)
+    block.setOutputPinTypeRestrains(1, 'any')
+    block.modifyFlags('SupressStartFunctionCall', true)
+    block.modifyFlags('SupressStopFunctionCall', true)
+    generic.refreshPins(self)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'Select', 'Select scalar signals (a1..an)')
+    gui.add('Edit', 'EditNumberOfInputs', 'Number of inputs', {NumberMode = true})
+    gui.set('EditNumberOfInputs', 'Integer', self.parameter.inputs)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.inputs = gui.get('EditNumberOfInputs', 'Integer')
+    generic.refreshPins(self)
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(
+      0x0,
+      '',
+      'local _y = h - h / #self.inputs * (#self.inputs // 2); draw.line(px(0), _y, px(66), _y, px(66), py(100))'
+      )
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        return {
+
+          step = function(A)
+STEP
+            return a1
+          end
+
+        }
+      ]==]
+    local step = ''
+    for i = self.parameter.inputs, 2, -1  do
+      step = step .. (i == self.parameter.inputs and '' or '\n') .. string.rep(' ', 12) .. 'if sel' .. i .. ' then return a' .. i .. ' end'
+    end
+    local replaces = {
+      ['A'] = table.concat(block.getInputsPinNames(), ', '),
+      ['STEP'] = step,
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+

@@ -1,0 +1,55 @@
+-- 19.08.2017 07:05:26 AR V1.0a
+
+generic = {
+  parameter = {
+  },
+
+  init = function(self)
+    block.setInputsPinCount(3)
+    block.setOutputsPinCount(1)
+    block.setInputPinName(1, 't')
+    block.setInputPinName(2, 'f')
+    block.setInputPinName(3, 'sel')
+    block.setInputPinTypeRestrains(1, 'any')
+    block.setInputPinTypeRestrains(2, 'any')
+    block.setInputPinTypeRestrains(3, 'boolean')
+    block.setOutputPinTypeRestrains(1, 'any')
+    block.modifyFlags('SupressStartFunctionCall', true)
+    block.modifyFlags('SupressStopFunctionCall', true)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'Select', 'Select scalar signal. If sel = true then select t else f')
+    gui.setSize()
+  end,
+
+  apply = function(self)
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(
+      0x0,
+      '',
+      'draw.line(px(0), py(66), px(66), py(66), px(66), py(100))'
+      )
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        return {
+
+          step = function(t, f , sel)
+            return sel and t or f
+          end
+
+        }
+      ]==]
+    return source
+  end,
+
+}
+
